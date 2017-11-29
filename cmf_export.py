@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 import struct
 
 def triangulate(face):
@@ -53,7 +54,7 @@ def faces(select_only=False):
 
 def writeFile(filepath="", select_only=False):
     triangles = faces(select_only)
-
+    
     file = open(filepath, "wb")
     file.write(b'COLUMBUS MODEL FILE') #Write magic
     file.write(struct.pack('>i', len(triangles * 3))) #Write vertices count
