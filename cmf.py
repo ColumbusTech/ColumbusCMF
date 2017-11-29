@@ -4,6 +4,7 @@ bl_info = {
 }
 
 import bpy
+import struct
 
 def triangulate(face):
     triangles = []
@@ -28,7 +29,7 @@ def faces():
     scene = bpy.context.scene
 
     faces = []
-    for obj in bpy.context.selected_objects:
+    for obj in bpy.context.selectable_objects:
         if obj.type != 'MESH':
             try:
                 me = obj.to_mesh(scene, True, "PREVIEW")
@@ -55,10 +56,14 @@ def faces():
 def writeFile(filepath=""):
     triangles = faces()
 
-    file = open(filepath, "w")
-    file.write('COLUMBUS MODEL FILE')
+    file = open(filepath, "wb")
+    file.write(b'COLUMBUS MODEL FILE')
     for face in triangles:
-        file.write(faceToLine(face))
+        #file.write(struct.pack('>f>f>f', faceToLine(face)))
+        #tri = faceToLine(face)
+        for tri in face:
+            for val in tri:
+                file.write(struct.pack('>f', val))
     file.close()
 
 class ExportCMF(bpy.types.Operator):
@@ -69,11 +74,8 @@ class ExportCMF(bpy.types.Operator):
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
 
     def execute(self, context):
-        #file = open(self.filepath, "w")
-        #file.write('COLUMBUS MODEL FILE')
-        #file.close()
         writeFile(self.filepath)
-
+        print ('Successfully exported CMF file')
         return {'FINISHED'}
 
     def invoke(self, context, event):
