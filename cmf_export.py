@@ -57,7 +57,7 @@ def writeFile(filepath="", select_only=False):
     
     file = open(filepath, "wb")
     file.write(b'COLUMBUS MODEL FILE') #Write magic
-    file.write(struct.pack('>i', len(triangles * 3))) #Write vertices count
+    file.write(struct.pack('I', len(triangles * 3))) #Write vertices count
 
     for face in triangles:
         for tri in face:
