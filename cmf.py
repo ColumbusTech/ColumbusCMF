@@ -10,7 +10,7 @@ class ExportCMF(bpy.types.Operator):
     bl_label = "Export CMF"
     filename_ext = ".cmf"
     filter_glob = bpy.props.StringProperty(default="*.cmf", options={'HIDDEN'})
-    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
+    filepath = bpy.props.StringProperty(default="untitled.cmf", subtype='FILE_PATH')
 
     select_only = bpy.props.BoolProperty(
             name="Selection Only",
