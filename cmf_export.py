@@ -51,16 +51,81 @@ def faces(select_only=False):
                 bpy.data.meshes.remove(me)
 
     return faces
+    
+def uvs(select_only=False):
+    scene = bpy.context.scene
+    selection = bpy.context.selectable_objects
+    if select_only:
+    	selection = bpy.context.selected_objects
+
+    texcoords = []
+    for obj in selection:
+        if obj.type != 'MESH':
+            try:
+                me = obj.to_mesh(scene, True, "PREVIEW")
+            except:
+                me = None
+            is_tmp_mesh = True
+        else:
+            me = obj.data
+            is_tmp_mesh = False
+
+        if me is not None:
+            for uv in me.uv_layers:
+                texcoords.extend(uv)
+
+            if is_tmp_mesh:
+                bpy.data.meshes.remove(me)
+    
+    return texcoords
 
 def writeFile(filepath="", select_only=False):
-    triangles = faces(select_only)
-    
     file = open(filepath, "wb")
-    file.write(b'COLUMBUS MODEL FILE') #Write magic
-    file.write(struct.pack('I', len(triangles * 3))) #Write vertices count
+    file.write(b"COLUMBUS MODEL FILE")
 
-    for face in triangles:
-        for tri in face:
-            for val in tri:
-                file.write(struct.pack('>f', val)) #Write vertices
-    file.close()
+    count = 0
+    for ob in bpy.context.scene.objects:
+        try:
+            ob.data.polygons
+        except AttributeError:
+            continue
+
+        bpy.context.scene.objects.active = ob
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.quads_convert_to_tris()
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        count+=len(ob.data.polygons)
+
+    file.write(struct.pack("I", count))
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    verts = []
+    uvs = []
+    norms = []
+
+    for ob in bpy.context.scene.objects:
+        try:
+            ob.data.polygons
+        except AttributeError:
+            continue
+
+        for face in ob.data.polygons:
+            for vert, loop in zip(face.vertices, face.loop_indices):
+                for item in ob.data.vertices[vert].co: #Vertex
+                    verts.append(item)
+                for item in (ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0)): #UV
+                    uvs.append(item)
+                for item in ob.data.vertices[vert].normal: #Normal
+                    norms.append(item)
+
+        for elem in verts:
+            file.write(struct.pack('f', elem))
+
+        for elem in uvs:
+            file.write(struct.pack('f', elem))
+
+        for elem in norms:
+            file.write(struct.pack('f', elem))
+
+            
