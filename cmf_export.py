@@ -4,7 +4,7 @@ import struct
 
 def writeFile(filepath="", select_only=False):
     file = open(filepath, "wb")
-    file.write(b"COLUMBUS MODEL FILE")
+    file.write(b"COLUMBUS MODEL FORMAT")
 
     count = 0
     for ob in bpy.context.scene.objects:
