@@ -1,2 +1,2 @@
 # ColumbusCMF
-Colmbus Model Format add-on for Blender
+Columbus Model Format add-on for Blender

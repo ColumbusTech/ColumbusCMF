@@ -21,6 +21,7 @@ def writeFile(filepath="", select_only=False):
         count+=len(ob.data.polygons)
 
     file.write(struct.pack("I", count))
+    file.write(struct.pack("=B", 0x00))
     bpy.ops.object.mode_set(mode='OBJECT')
 
     verts = []
