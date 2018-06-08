@@ -2,7 +2,7 @@ import bpy
 import bmesh
 import struct
 
-def writeFile(filepath="", select_only=False):
+def writeFile(filepath="", select_only=False, smooth_normals=False):
     file = open(filepath, "wb")
     file.write(b"COLUMBUS MODEL FORMAT")
 
@@ -40,8 +40,15 @@ def writeFile(filepath="", select_only=False):
                     verts.append(item)
                 for item in (ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0)): #UV
                     uvs.append(item)
-                for item in ob.data.vertices[vert].normal: #Normal
-                    norms.append(item)
+                #Smoothed/Not smoothed
+                if smooth_normals:
+                    for item in ob.data.vertices[vert].normal: #Vertex normal
+                        norms.append(item)
+                else: #Face normal
+                    vert = 0
+                    norms.append(face.normal.x)
+                    norms.append(face.normal.y)
+                    norms.append(face.normal.z)
 
         for elem in verts:
             file.write(struct.pack('f', elem))

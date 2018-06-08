@@ -17,12 +17,18 @@ class ExportCMF(bpy.types.Operator):
             description="Export selected objects only",
             default=False)
 
+    smooth_normals = bpy.props.BoolProperty(
+            name="Smooth normals",
+            description="Smooth object normals",
+            default=False)
+
     def execute(self, context):
         import cmf_export
 
         cmf_export.writeFile(
                 self.filepath,
-                self.select_only)
+                self.select_only,
+                self.smooth_normals)
         
         print ('Successfully exported CMF file')
         return {'FINISHED'}
