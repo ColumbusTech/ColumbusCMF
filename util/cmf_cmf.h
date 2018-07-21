@@ -4,8 +4,6 @@
 #include <zstd.h>
 #include "util.h"
 
-#include <unistd.h>
-
 // CMF structure
 // ____________
 // | 21 bytes | Magic bytes "COLUMBUS MODEL FORMAT"
