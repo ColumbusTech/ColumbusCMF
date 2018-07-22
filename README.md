@@ -6,11 +6,19 @@ Columbus Model Format (CMF) developed for Columbus Engine. Engine needed fast, s
 ## File structure
 CMF is very simple. It has 26-byte header, containing magic bytes and some parameters and data field, which can be compressed with ZSTD algorithm.
 
+### Header
 | Field | Size in bytes | Value  |        Description         |
 |-------|---------------|--------|----------------------------|
-| Magic | 21 | string | File magic "COLUMBUS MODEL FORMAT"|
-| Count | 4 | uint32 | Count of polygons im model |
-| Compression | 1 | uint8  | Compression of data field, 0x00 - no, 0xFF - ZSTD compression|
+| Magic | 21 | string | File magic "COLUMBUS MODEL FORMAT" |
+| Count | 4 | uint32 | Count of polygons im model  |
+| Compression | 1 | uint8  | Compression of data field, 0x00 - no, 0xFF - ZSTD compression |
+
+### Data field
+| Part | Size in bytes | Description |
+|------|---------------|-------------|
+| Vertices | Count * 3 * 3 * sizeof(float) | Array of floats (XYZ, XYZ,...) with **ALL** vertices positions |
+| UVs | Count * 3 * 2 * sizeof(float) | Array of floats (UV, UV,...) with **ALL** UV coordinates |
+| Normals |  Count * 3 * 3 * sizeof(float) | Array of floats (XYZ, XYZ,...) with **ALL** normal directions |
 
 ## Console util
 
