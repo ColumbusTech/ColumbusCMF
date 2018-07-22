@@ -66,8 +66,6 @@ void PrintUsing()
 	printf("Flags\n");
 	printf("-h, --help         print this message\n");
 	printf("-c, --compress     enable compression for output file\n");
-	//printf("-h, --help\n");
-	//printf("-c, --compress\n");
 }
 
 CommandLineFlags CheckFlags(int argc, char** argv)
