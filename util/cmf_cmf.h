@@ -163,14 +163,12 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 		return false;
 	}
 
-	printf("Saving CMF file...\n");
-
 	uint32_t Count = Vertices.size() / 3;
 	uint8_t Compression = Compressed ? 0xFF : 0x00;
 
 	fwrite("COLUMBUS MODEL FORMAT", 1, 21, File);
 	fwrite(&Count, 1, sizeof(uint32_t), File);
-	fwrite(&Compressed, 1, sizeof(uint8_t), File);
+	fwrite(&Compression, 1, sizeof(uint8_t), File);
 
 	double ProgressPerVertex = 1.0 / Vertices.size() * (3.0 / 8.0);
 	double ProgressPerUV     = 1.0 / Vertices.size() * (2.0 / 8.0);
@@ -179,6 +177,8 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 
 	if (!Compressed)
 	{
+		printf("Saving CMF file...\n");
+
 		for (const auto& Vert : Vertices)
 		{
 			fwrite(&Vert.X, sizeof(float), 1, File);
@@ -207,10 +207,90 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 			Progress += ProgressPerNormal;
 			PrintProgress(Progress);
 		}
-	}
 
-	PrintProgress(1.0);
-	printf("\n");
+		PrintProgress(1.0);
+		printf("\n");
+	}
+	else
+	{
+		printf("Compressing...\n");
+
+		uint64_t DataCount = (Vertices.size() * 3)
+		                   + (Vertices.size() * 2)
+		                   + (Vertices.size() * 3);
+
+		uint64_t DataSize = DataCount * sizeof(float);
+		uint64_t Bound = ZSTD_compressBound(DataSize);
+		uint64_t Counter = 0;
+
+		float* Data = new float[DataCount];
+		uint8_t* Compressed = new uint8_t[Bound];
+
+		double CompressProgressPerVertex = 0.5 / Vertices.size() * (3.0 / 8.0);
+		double CompressProgressPerUV     = 0.5 / Vertices.size() * (2.0 / 8.0);
+		double CompressProgressPerNormal = 0.5 / Vertices.size() * (3.0 / 8.0);
+		double CompressProgress = 0.0;
+
+		for (const auto& Vert : Vertices)
+		{
+			Data[Counter++] = Vert.X;
+			Data[Counter++] = Vert.Y;
+			Data[Counter++] = Vert.Z;
+
+			CompressProgress += CompressProgressPerVertex;
+			PrintProgress(CompressProgress);
+		}
+
+		for (const auto& Vert : Vertices)
+		{
+			Data[Counter++] = Vert.U;
+			Data[Counter++] = Vert.V;
+
+			CompressProgress += CompressProgressPerUV;
+			PrintProgress(CompressProgress);
+		}
+
+		for (const auto& Vert : Vertices)
+		{
+			Data[Counter++] = Vert.NX;
+			Data[Counter++] = Vert.NY;
+			Data[Counter++] = Vert.NZ;
+
+			CompressProgress += CompressProgressPerNormal;
+			PrintProgress(CompressProgress);
+		}
+
+		uint64_t CompressedDataSize = ZSTD_compress(Compressed, Bound, Data, DataSize, 1);
+		delete[] Data;
+
+		PrintProgress(1.0);
+		printf("\n");
+
+		printf("Saving CMF file...\n");
+
+		double SaveProgressPerByte = 1.0 / CompressedDataSize;
+		double SaveProgress = 0.0;
+
+		for (uint64_t i = 0; i < CompressedDataSize; i++)
+		{
+			static int Print = 0;
+
+			fwrite(&Compressed[i], sizeof(uint8_t), 1, File);
+			SaveProgress += SaveProgressPerByte;
+
+			if (Print % 4 == 0)
+			{
+				PrintProgress(SaveProgress);
+			}
+
+			Print++;
+		}
+
+		delete[] Compressed;
+
+		PrintProgress(1.0);
+		printf("\n");
+	}
 
 	fclose(File);
 

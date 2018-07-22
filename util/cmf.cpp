@@ -64,8 +64,10 @@ void PrintUsing()
 	printf("Using\n");
 	printf("cmf [input] [output] [flags]\n\n");
 	printf("Flags\n");
-	printf("-h --help\n");
-	printf("-c --compress\n");
+	printf("-h, --help         print this message\n");
+	printf("-c, --compress     enable compression for output file\n");
+	//printf("-h, --help\n");
+	//printf("-c, --compress\n");
 }
 
 CommandLineFlags CheckFlags(int argc, char** argv)
@@ -74,12 +76,12 @@ CommandLineFlags CheckFlags(int argc, char** argv)
 
 	for (int i = 1; i < argc; i++)
 	{
-		if (memcmp(argv[1], "-h", 2) == 0 || memcmp(argv[1], "--help", 6) == 0)
+		if (memcmp(argv[i], "-h", 2) == 0 || memcmp(argv[i], "--help", 6) == 0)
 		{
 			Flags.Help = true;
 		}
 
-		if (memcmp(argv[1], "-c", 2) == 0 || memcmp(argv[1], "--compress", 10) == 0)
+		if (memcmp(argv[i], "-c", 2) == 0 || memcmp(argv[i], "--compress", 10) == 0)
 		{
 			Flags.Compress = true;
 		}
@@ -90,7 +92,7 @@ CommandLineFlags CheckFlags(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-	printf("Columbus Model File Util\n\n");
+	printf("Columbus Model Format Util\n\n");
 	CommandLineFlags Flags = CheckFlags(argc, argv);
 
 	if (Flags.Help)
