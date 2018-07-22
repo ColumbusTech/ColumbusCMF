@@ -8,12 +8,14 @@ CMF is very simple. It has 26-byte header, containing magic bytes and some param
 
 | Field | Size in bytes | Value  |        Description         |
 |-------|---------------|--------|----------------------------|
-| Magic |      21       | string | File magic "COLUMBUS MODEL FORMAT"|
-| Count |       4       | uint32 | Count of polygons im model |
-| Compr |       1       | uint8  | Compression of data field, 0x00 - no, 0xFF - ZSTD compression|
+| Magic | 21 | string | File magic "COLUMBUS MODEL FORMAT"|
+| Count | 4 | uint32 | Count of polygons im model |
+| Compression | 1 | uint8  | Compression of data field, 0x00 - no, 0xFF - ZSTD compression|
 
-## Console util using
-cmf [input] [output] [flags]
+## Console util
+
+### Using
+#### cmf [input] [output] [flags]
 
 ### Console util flags
 | Flag           | Description |
