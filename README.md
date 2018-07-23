@@ -1,5 +1,5 @@
 # ColumbusCMF
-Columbus Model Format add-on for Blender and console util for models conversion
+Columbus Model Format add-on for Blender, C library and console util for models conversion
 
 ## Getting started
 Columbus Model Format (CMF) developed for Columbus Engine. Engine needed fast, small, simple format for containing 3-dimensional data.
@@ -19,6 +19,14 @@ CMF is very simple. It has 26-byte header, containing magic bytes and some param
 | Vertices | Count * 3 * 3 * sizeof(float) | Array of floats (XYZ, XYZ,...) with **ALL** vertices positions |
 | UVs | Count * 3 * 2 * sizeof(float) | Array of floats (UV, UV,...) with **ALL** UV coordinates |
 | Normals |  Count * 3 * 3 * sizeof(float) | Array of floats (XYZ, XYZ,...) with **ALL** normal directions |
+
+##C Library
+C library cmf.h created for simple using CMF in applications.
+### Using
+```c
+uint32_t Count;
+CMF_Vertex* Vertices = CMF_Load("filename.cmf");
+```
 
 ## Console util
 
