@@ -20,7 +20,7 @@ CMF is very simple. It has 26-byte header, containing magic bytes and some param
 | UVs | Count * 3 * 2 * sizeof(float) | Array of floats (UV, UV,...) with **ALL** UV coordinates |
 | Normals |  Count * 3 * 3 * sizeof(float) | Array of floats (XYZ, XYZ,...) with **ALL** normal directions |
 
-##C Library
+## C Library
 C library cmf.h created for simple using CMF in applications.
 ### Using
 ```c
