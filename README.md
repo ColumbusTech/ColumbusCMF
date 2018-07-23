@@ -26,6 +26,20 @@ C library cmf.h created for simple using CMF in applications.
 ```c
 uint32_t Count;
 CMF_Vertex* Vertices = CMF_Load("filename.cmf");
+CMF_vec3 Pos;
+CMF_vec2 UV;
+CMF_vec3 Norm;
+
+for (uint32_t i = 0; i < Count; i++)
+{
+	Pos = Vertices[i].Position;
+	UV = Vertices[i].UV;
+	Norm = Vertices[i].Normal;
+
+	some_func1(Pos.X, Pos.Y, Pos.Z);
+	some_func2(UV.X, UV.Y);
+	some_func3(Norm.X, Norm.Y, Norm.Z);
+}
 ```
 
 ## Console util
