@@ -52,6 +52,7 @@ void  ProcessVertices(uint32_t Count, float* VBuffer, float* UBuffer, float* NBu
 
 	double ProgressOnPolygon = 1.0 / float(Count);
 	double Progress = 0.0f;
+	double Delta = 0.0;
 
 	for (uint32_t i = 0; i < Count; i++)
 	{
@@ -72,8 +73,14 @@ void  ProcessVertices(uint32_t Count, float* VBuffer, float* UBuffer, float* NBu
 			Vertices.push_back(Vert[j]);
 		}
 
-		Progress += ProgressOnPolygon;
-		PrintProgress(Progress);
+		Delta += ProgressOnPolygon;
+
+		if (Delta >= 0.01)
+		{
+			Progress += Delta;
+			Delta = 0.0;
+			PrintProgress(Progress);
+		}
 	}
 
 	PrintProgress(1.0);
@@ -174,6 +181,7 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 	double ProgressPerUV     = 1.0 / Vertices.size() * (2.0 / 8.0);
 	double ProgressPerNormal = 1.0 / Vertices.size() * (3.0 / 8.0);
 	double Progress = 0.0;
+	double Delta = 0.0;
 
 	if (!Compressed)
 	{
@@ -181,31 +189,47 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 
 		for (const auto& Vert : Vertices)
 		{
-			fwrite(&Vert.X, sizeof(float), 1, File);
-			fwrite(&Vert.Y, sizeof(float), 1, File);
-			fwrite(&Vert.Z, sizeof(float), 1, File);
+			float Position[3] = { Vert.X, Vert.Y, Vert.Z };
+			fwrite(Position, 3 * sizeof(float), 1, File);
 
-			Progress += ProgressPerVertex;
-			PrintProgress(Progress);
+			Delta += ProgressPerVertex;
+
+			if (Delta >= 0.01)
+			{
+				Progress += Delta;
+				Delta = 0.0;
+				PrintProgress(Progress);
+			}
 		}
 
 		for (const auto& Vert : Vertices)
 		{
-			fwrite(&Vert.U, sizeof(float), 1, File);
-			fwrite(&Vert.V, sizeof(float), 1, File);
+			float UV[2] = { Vert.U, Vert.V };
+			fwrite(UV, 2 * sizeof(float), 1, File);
 
-			Progress += ProgressPerUV;
-			PrintProgress(Progress);
+			Delta += ProgressPerUV;
+
+			if (Delta >= 0.01)
+			{
+				Progress += Delta;
+				Delta = 0.0;
+				PrintProgress(Progress);
+			}
 		}
 
 		for (const auto& Vert : Vertices)
 		{
-			fwrite(&Vert.NX, sizeof(float), 1, File);
-			fwrite(&Vert.NY, sizeof(float), 1, File);
-			fwrite(&Vert.NZ, sizeof(float), 1, File);
+			float Normal[3] = { Vert.NX, Vert.NY, Vert.NZ };
+			fwrite(Normal,3 * sizeof(float), 1, File);
 
-			Progress += ProgressPerNormal;
-			PrintProgress(Progress);
+			Delta += ProgressPerNormal;
+			
+			if (Delta >= 0.01)
+			{
+				Progress += Delta;
+				Delta = 0.0;
+				PrintProgress(Progress);
+			}
 		}
 
 		PrintProgress(1.0);
@@ -230,6 +254,7 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 		double CompressProgressPerUV     = 0.5 / Vertices.size() * (2.0 / 8.0);
 		double CompressProgressPerNormal = 0.5 / Vertices.size() * (3.0 / 8.0);
 		double CompressProgress = 0.0;
+		double CompressDelta = 0.0;
 
 		for (const auto& Vert : Vertices)
 		{
@@ -237,16 +262,14 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 			Data[Counter++] = Vert.Y;
 			Data[Counter++] = Vert.Z;
 
-			CompressProgress += CompressProgressPerVertex;
+			CompressDelta += CompressProgressPerVertex;
 
-			static int Print = 0;
-
-			if (Print % 3 == 0)
+			if (CompressDelta >= 0.01)
 			{
+				CompressProgress += CompressDelta;
+				CompressDelta = 0.0;
 				PrintProgress(CompressProgress);
 			}
-
-			Print++;
 		}
 
 		for (const auto& Vert : Vertices)
@@ -254,16 +277,14 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 			Data[Counter++] = Vert.U;
 			Data[Counter++] = Vert.V;
 
-			CompressProgress += CompressProgressPerUV;
-			
-			static int Print = 0;
+			CompressDelta += CompressProgressPerUV;
 
-			if (Print % 3 == 0)
+			if (CompressDelta >= 0.01)
 			{
+				CompressProgress += CompressDelta;
+				CompressDelta = 0.0;
 				PrintProgress(CompressProgress);
 			}
-
-			Print++;
 		}
 
 		for (const auto& Vert : Vertices)
@@ -272,16 +293,14 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 			Data[Counter++] = Vert.NY;
 			Data[Counter++] = Vert.NZ;
 
-			CompressProgress += CompressProgressPerNormal;
-			
-			static int Print = 0;
+			CompressDelta += CompressProgressPerNormal;
 
-			if (Print % 3 == 0)
+			if (CompressDelta >= 0.01)
 			{
+				CompressProgress += CompressDelta;
+				CompressDelta = 0.0;
 				PrintProgress(CompressProgress);
 			}
-
-			Print++;
 		}
 
 		uint64_t CompressedDataSize = ZSTD_compress(Compressed, Bound, Data, DataSize, 1);
@@ -294,20 +313,20 @@ bool SaveCMF(const char* FileName, std::vector<Vertex> Vertices, bool Compressed
 
 		double SaveProgressPerByte = 1.0 / CompressedDataSize;
 		double SaveProgress = 0.0;
+		double SaveDelta = 0.0;
 
 		for (uint64_t i = 0; i < CompressedDataSize; i++)
 		{
-			static int Print = 0;
-
 			fwrite(&Compressed[i], sizeof(uint8_t), 1, File);
-			SaveProgress += SaveProgressPerByte;
 
-			if (Print % (3 * sizeof(float)) == 0)
+			SaveDelta += SaveProgressPerByte;
+
+			if (SaveDelta >= 0.01)
 			{
+				SaveProgress += SaveDelta;
+				SaveDelta = 0.0;
 				PrintProgress(SaveProgress);
 			}
-
-			Print++;
 		}
 
 		delete[] Compressed;
