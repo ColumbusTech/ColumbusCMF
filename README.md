@@ -40,6 +40,8 @@ for (uint32_t i = 0; i < Count; i++)
 	some_func2(UV.X, UV.Y);
 	some_func3(Norm.X, Norm.Y, Norm.Z);
 }
+
+int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 ```
 
 ## Console util
