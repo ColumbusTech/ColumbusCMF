@@ -35,7 +35,7 @@ static void ProcessVertices(uint32_t Count, float* VBuffer, float* UBuffer, floa
 	uint64_t UCounter = 0x00;
 	uint64_t NCounter = 0x00;
 
-	for (uint32_t i = 0; i < Count; i++)
+	for (uint32_t i = 0; i < Count * 3; i++)
 	{
 		Out[i].Position.X = VBuffer[VCounter++];
 		Out[i].Position.Y = VBuffer[VCounter++];
@@ -60,9 +60,8 @@ CMF_Vertex* CMF_Load(const char* FileName, uint32_t* OutCount)
 	uint8_t Compression = 0x00;
 
 	//Get file size
-	uint64_t FileSize = 0x00;
 	fseek(File, 0, SEEK_END);
-	FileSize = ftell(File);
+	uint64_t FileSize = ftell(File);
 	fseek(File, 0, SEEK_SET);
 
 	//Check file signature
@@ -81,7 +80,7 @@ CMF_Vertex* CMF_Load(const char* FileName, uint32_t* OutCount)
 	VBuffer = (float*)malloc(Count * 3 * 3 * sizeof(float));
 	UBuffer = (float*)malloc(Count * 3 * 2 * sizeof(float));
 	NBuffer = (float*)malloc(Count * 3 * 3 * sizeof(float));
-	Vertices = (CMF_Vertex*)malloc(Count * sizeof(CMF_Vertex));
+	Vertices = (CMF_Vertex*)malloc(Count * 3 * sizeof(CMF_Vertex));
 
 	switch (Compression)
 	{
@@ -124,6 +123,91 @@ CMF_Vertex* CMF_Load(const char* FileName, uint32_t* OutCount)
 
 	fclose(File);
 	return Vertices;
+}
+
+static void FillBuffers(uint32_t Count, float* VBuffer, float* UBuffer, float* NBuffer, CMF_Vertex* Vertices)
+{
+	uint64_t VCounter = 0x00;
+	uint64_t UCounter = 0x00;
+	uint64_t NCounter = 0x00;
+
+	for (uint32_t i = 0; i < Count * 3; i++)
+	{
+		VBuffer[VCounter++] = Vertices[i].Position.X;
+		VBuffer[VCounter++] = Vertices[i].Position.Y;
+		VBuffer[VCounter++] = Vertices[i].Position.Z;
+
+		UBuffer[UCounter++] = Vertices[i].UV.X;
+		UBuffer[UCounter++] = Vertices[i].UV.Y;
+
+		NBuffer[NCounter++] = Vertices[i].Normal.X;
+		NBuffer[NCounter++] = Vertices[i].Normal.Y;
+		NBuffer[NCounter++] = Vertices[i].Normal.Z;
+	}
+}
+
+int CMF_Save(uint32_t Count, uint8_t Compression, CMF_Vertex* Vertices, const char* FileName)
+{
+	if (Compression != 0x00 && Compression != 0xFF) return 1;
+
+	FILE* File = fopen(FileName, "wb");
+	if (File == NULL) return 1;
+
+	//Write header
+	fwrite("COLUMBUS MODEL FORMAT", 21, 1, File);
+	fwrite(&Count, sizeof(uint32_t), 1, File);
+	fwrite(&Compression, sizeof(uint8_t), 1, File);
+
+	float* VBuffer = (float*)malloc(Count * 3 * 3 * sizeof(float));
+	float* UBuffer = (float*)malloc(Count * 3 * 2 * sizeof(float));
+	float* NBuffer = (float*)malloc(Count * 3 * 3 * sizeof(float));
+
+	FillBuffers(Count, VBuffer, UBuffer, NBuffer, Vertices);
+
+	switch (Compression)
+	{
+		case 0x00: //No compression
+		{
+			fwrite(VBuffer, Count * 3 * 3 * sizeof(float), 1, File);
+			fwrite(UBuffer, Count * 3 * 2 * sizeof(float), 1, File);
+			fwrite(NBuffer, Count * 3 * 3 * sizeof(float), 1, File);
+
+			break;
+		}
+
+		case 0xFF: //ZSTD compression
+		{
+			uint64_t DataCount = (Count * 3 * 3)
+			                   + (Count * 3 * 2)
+			                   + (Count * 3 * 3);
+
+			uint64_t DataSize = DataCount * sizeof(float);
+			uint64_t Bound = ZSTD_compressBound(DataSize);
+			uint64_t Counter = 0;
+
+			float* Data = (float*)malloc(DataCount * sizeof(float));
+			uint8_t* Compressed = (uint8_t*)malloc(Bound);
+
+			memcpy(Data, VBuffer,  Count * 3 * 3 * sizeof(float)); Data += Count * 3 * 3;
+			memcpy(Data, UBuffer,  Count * 3 * 2 * sizeof(float)); Data += Count * 3 * 2;
+			memcpy(Data, NBuffer,  Count * 3 * 3 * sizeof(float)); Data += Count * 3 * 3;
+			Data -= DataCount;
+
+			uint64_t CompressedSize = ZSTD_compress(Compressed, Bound, Data, DataSize, 1);
+			free(Data);
+			fwrite(Compressed, CompressedSize, 1, File);
+			free(Compressed);
+
+			break;
+		}
+	};
+
+	free(VBuffer);
+	free(UBuffer);
+	free(NBuffer);
+
+	fclose(File);
+	return 0;
 }
 
 
