@@ -49,7 +49,12 @@ static void ProcessVertices(uint32_t Count, float* VBuffer, float* UBuffer, floa
 		Out[i].Normal.Z = NBuffer[NCounter++];
 	}
 }
-
+/*
+* @param const char* FileName Name of file, which would be read
+* @param uint32_t* OutCount, must be valid pointer to count of polygons
+* @return CMF_Vertex* Vertex buffer which read from file
+* Function returns NULL if error was occured
+*/
 CMF_Vertex* CMF_Load(const char* FileName, uint32_t* OutCount)
 {
 	FILE* File = fopen(FileName, "rb");
@@ -145,7 +150,13 @@ static void FillBuffers(uint32_t Count, float* VBuffer, float* UBuffer, float* N
 		NBuffer[NCounter++] = Vertices[i].Normal.Z;
 	}
 }
-
+/*
+* @param uint32_t Count Count of polygons in model
+* @param uint8_t Compression 0x00 for no compression, 0xFF for ZSTD compression
+* @param CMF_Vertex* Vertices Vertex buffer of model, size must be at least (Count * 3)
+* @param const char* FileName Name of file in which would be written vertex data
+* This function returns 0 if writing was produced completely, else it returns 1
+*/
 int CMF_Save(uint32_t Count, uint8_t Compression, CMF_Vertex* Vertices, const char* FileName)
 {
 	if (Compression != 0x00 && Compression != 0xFF) return 1;
