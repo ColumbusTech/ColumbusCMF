@@ -48,12 +48,14 @@ int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 
 ### Installing
 ```
-	sudo make
-	sudo make install
+sudo make
+sudo make install
 ```
 
 ### Using
-#### cmf [input] [output] [flags]
+```
+cmf [input] [output] [flags]
+```
 
 #### Console util flags
 | Flag           | Description |
@@ -63,7 +65,7 @@ int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 
 ### Uninstalling
 ```
-	sudo make uninstall
+sudo make uninstall
 ```
 
 
