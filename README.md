@@ -46,14 +46,25 @@ int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 
 ## Console util
 
+### Installing
+```
+	sudo make
+	sudo make install
+```
+
 ### Using
 #### cmf [input] [output] [flags]
 
-### Console util flags
+#### Console util flags
 | Flag           | Description |
 |----------------|-------------|
 | -h, --help     | Print help message |
 | -c, --compress | Enable compression for output file |
+
+### Uninstalling
+```
+	sudo make uninstall
+```
 
 
 
