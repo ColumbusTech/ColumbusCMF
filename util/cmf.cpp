@@ -11,8 +11,8 @@ enum FileType
 
 struct CommandLineFlags
 {
-	bool Help;
-	bool Compress;
+	bool Help = false;
+	bool Compress = false;
 };
 
 std::vector<Vertex> Vertices;
