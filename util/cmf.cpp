@@ -1,7 +1,9 @@
 #include <cstdio>
+#include <cstdlib>
 #include <cstdint>
 #include <cstring>
 #include "cmf_cmf.h"
+
 
 enum FileType
 {
@@ -13,6 +15,9 @@ struct CommandLineFlags
 {
 	bool Help = false;
 	bool Compress = false;
+	bool VerticesWrite = false;
+	bool TexcoordsWrite = false;
+	bool NormalsWrite = false;
 };
 
 std::vector<Vertex> Vertices;
@@ -66,6 +71,9 @@ void PrintUsing()
 	printf("Flags\n");
 	printf("-h, --help         print this message\n");
 	printf("-c, --compress     enable compression for output file\n");
+	printf("-v, --vertices     enable writing vertices in output file\n");
+	printf("-t, --texcoords    enable writing texture coordinates in ouput file\n");
+	printf("-n, --normals      enable writing normals in output file\n");
 }
 
 CommandLineFlags CheckFlags(int argc, char** argv)
@@ -78,10 +86,31 @@ CommandLineFlags CheckFlags(int argc, char** argv)
 		{
 			Flags.Help = true;
 		}
-
+		else
 		if (memcmp(argv[i], "-c", 2) == 0 || memcmp(argv[i], "--compress", 10) == 0)
 		{
 			Flags.Compress = true;
+		}
+		else
+		if (memcmp(argv[i], "-v", 2) == 0 || memcmp(argv[i], "--vertices", 10) == 0)
+		{
+			Flags.VerticesWrite = true;
+		}
+		else
+		if (memcmp(argv[i], "-t", 2) == 0 || memcmp(argv[i], "--texcoords", 11) == 0)
+		{
+			Flags.TexcoordsWrite = true;
+		}
+		else
+		if (memcmp(argv[i], "-n", 2) == 0 || memcmp(argv[i], "--normals", 9) == 0)
+		{
+			Flags.NormalsWrite = true;
+		}
+		else
+		{
+			printf("Error: Invalid argument «%s»\n", argv[i]);
+			printf("You may use «cmf --help» for full information\n");
+			exit(1);
 		}
 	}
 
