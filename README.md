@@ -10,7 +10,7 @@ CMF is very simple. It has 26-byte header, containing magic bytes and some param
 | Field | Size in bytes | Value  |        Description         |
 |-------|---------------|--------|----------------------------|
 | Magic | 21 | string | File magic "COLUMBUS MODEL FORMAT" |
-| Count | 4 | uint32 | Count of polygons im model  |
+| Count | 4 | uint32 | Count of polygons in model  |
 | Compression | 1 | uint8  | Compression of data field, 0x00 - no, 0xFF - ZSTD compression |
 
 ### Data field
@@ -48,7 +48,7 @@ int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 
 ### Installing
 ```
-sudo make
+make
 sudo make install
 ```
 
@@ -62,6 +62,9 @@ cmf [input] [output] [flags]
 |----------------|-------------|
 | -h, --help     | Print help message |
 | -c, --compress | Enable compression for output file |
+| -v, --vertices | Enable writing vertices in output file |
+| -t, --texcoords| Enable writing texture coordinates in ouput file |
+| -n, --normals  | Enable writing normals in output file |
 
 ### Uninstalling
 ```
