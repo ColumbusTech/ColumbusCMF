@@ -46,6 +46,24 @@ FileType GetFileType(const char* FileName)
 	return Undefined;
 }
 
+bool FileExists(const char* FileName)
+{
+	bool Existance = false;
+	FILE* File = fopen(FileName, "r");
+	Existance = File != nullptr;
+	fclose(File);
+	return Existance;
+}
+
+bool FileMayBeCreated(const char* FileName)
+{
+	bool Oportunity = false;
+	FILE* File = fopen(FileName, "w");
+	Oportunity = File != nullptr;
+	fclose(File);
+	return Oportunity;
+}
+
 bool Load(const char* FileName)
 {
 	FileType Type = GetFileType(FileName);
@@ -84,6 +102,14 @@ CommandLineFlags CheckFlags(int argc, char** argv)
 	{
 		if (memcmp(argv[i], "-h", 2) == 0 || memcmp(argv[i], "--help", 6) == 0)
 		{
+			if (argc >= 3)
+			{
+				if (argv[2][0] != '-' && FileMayBeCreated(argv[2]))
+				{
+					remove(argv[2]);
+				}
+			}
+
 			Flags.Help = true;
 		}
 		else
@@ -105,6 +131,16 @@ CommandLineFlags CheckFlags(int argc, char** argv)
 		if (memcmp(argv[i], "-n", 2) == 0 || memcmp(argv[i], "--normals", 9) == 0)
 		{
 			Flags.NormalsWrite = true;
+		}
+		else
+		if (i == 1 && argv[1][0] != '-' && FileExists(argv[1]))
+		{
+
+		}
+		else
+		if (i == 2 && argv[2][0] != '-' && FileMayBeCreated(argv[2]))
+		{
+
 		}
 		else
 		{
