@@ -90,7 +90,7 @@ void PrintUsing()
 	printf("-h, --help         print this message\n");
 	printf("-c, --compress     enable compression for output file\n");
 	printf("-v, --vertices     enable writing vertices in output file\n");
-	printf("-t, --texcoords    enable writing texture coordinates in ouput file\n");
+	printf("-t, --texcoords    enable writing texture coordinates in output file\n");
 	printf("-n, --normals      enable writing normals in output file\n");
 }
 

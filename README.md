@@ -63,7 +63,7 @@ cmf [input] [output] [flags]
 | -h, --help     | Print help message |
 | -c, --compress | Enable compression for output file |
 | -v, --vertices | Enable writing vertices in output file |
-| -t, --texcoords| Enable writing texture coordinates in ouput file |
+| -t, --texcoords| Enable writing texture coordinates in output file |
 | -n, --normals  | Enable writing normals in output file |
 
 ### Uninstalling
