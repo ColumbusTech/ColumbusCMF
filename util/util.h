@@ -1,4 +1,7 @@
 #include <cstdio>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
 
 struct Vertex
 {
@@ -7,16 +10,16 @@ struct Vertex
 	float NX, NY, NZ;
 };
 
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
+#define PBSTR "||||||||||||||||||||||||||||||"
+#define PBWIDTH 30
 
 void PrintProgress(double Percentage)
 {
-    int val = (int) (Percentage * 100);
-    int lpad = (int) (Percentage * PBWIDTH);
-    int rpad = PBWIDTH - lpad;
-    printf ("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-    fflush (stdout);
+    int Value  = (int)(Percentage * 100);
+    int LValue = (int)(Percentage * PBWIDTH);
+    int RValue = PBWIDTH - LValue;
+	printf("\r[%.*s%*s] %d%%", LValue, PBSTR, RValue, "", Value);
+	fflush(stdout);
 }
 
 
