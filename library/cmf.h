@@ -6,8 +6,13 @@
 #include <string.h>
 #include <zstd.h>
 
-/*
-* Helper structs for storing vertex data
+/**
+* @file cmf.h
+* @brief File including all structs and functions of CMF C library.
+*/
+
+/*!
+* Two-dimensional vector struct. Used for texture coordinates.
 */
 typedef struct
 {
@@ -15,6 +20,9 @@ typedef struct
 	float Y;
 } CMF_vec2;
 
+/*!
+* Three-dimensial vector struct. Used for vertex positions and normals.
+*/
 typedef struct
 {
 	float X;
@@ -22,6 +30,9 @@ typedef struct
 	float Z;
 } CMF_vec3;
 
+/*!
+* Vertex struct.
+*/
 typedef struct
 {
 	CMF_vec3 Position;
@@ -49,11 +60,12 @@ static void ProcessVertices(uint32_t Count, float* VBuffer, float* UBuffer, floa
 		Out[i].Normal.Z = NBuffer[NCounter++];
 	}
 }
-/*
-* @param const char* FileName Name of file, which would be read
-* @param uint32_t* OutCount, must be valid pointer to count of polygons
-* @return CMF_Vertex* Vertex buffer which read from file
-* Function returns NULL if error was occured
+/*!
+* @brief Loads CMF from file.
+*
+* @param FileName Name of file, which would be read.
+* @param OutCount Valid pointer to count of polygons.
+* @return Buffer which read from file or NULL if error was occured.
 */
 CMF_Vertex* CMF_Load(const char* FileName, uint32_t* OutCount)
 {
@@ -150,12 +162,14 @@ static void FillBuffers(uint32_t Count, float* VBuffer, float* UBuffer, float* N
 		NBuffer[NCounter++] = Vertices[i].Normal.Z;
 	}
 }
-/*
-* @param uint32_t Count Count of polygons in model
-* @param uint8_t Compression 0x00 for no compression, 0xFF for ZSTD compression
-* @param CMF_Vertex* Vertices Vertex buffer of model, size must be at least (Count * 3)
-* @param const char* FileName Name of file in which would be written vertex data
-* This function returns 0 if writing was produced completely, else it returns 1
+/*!
+* @brief Saves CMF to file.
+*
+* @param Count Count of **polygons** in model.
+* @param Compression 0x00 for no compression, 0xFF for ZSTD compression.
+* @param Vertices Vertex buffer of model, size must be at least (Count * 3).
+* @param FileName Name of file in which would be written vertex data.
+* @return Returns 0 if saving was successful, otherwise returns 1.
 */
 int CMF_Save(uint32_t Count, uint8_t Compression, CMF_Vertex* Vertices, const char* FileName)
 {
@@ -220,31 +234,3 @@ int CMF_Save(uint32_t Count, uint8_t Compression, CMF_Vertex* Vertices, const ch
 	fclose(File);
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
