@@ -1,8 +1,16 @@
 # ColumbusCMF
 Columbus Model Format add-on for Blender, C library and console util for models conversion
 
+The master hosted on github: https://github.com/ColumbusTech/ColumbusCMF
+
 ## Getting started
-Columbus Model Format (CMF) developed for Columbus Engine. Engine needed fast, small, simple format for containing 3-dimensional data.
+Columbus Model Format (CMF) developed for Columbus Engine. Engine needed fast, small, simple and and binary file format for containing 3-dimensional data.
+
+C library was created for simple using CMF in applications (for example, CMF console util).
+
+Console util was created for converting formats from most popular (FBX, OBJ) to CMF. Now it can't do this but I will develop this when there is free time.
+
+Addon for Blender was created for simple saving models from blender into CMF. Now it just can't use compression.
 ## File structure
 CMF is very simple. It has 26-byte header, containing magic bytes and some parameters and data field, which can be compressed with ZSTD algorithm.
 
@@ -22,10 +30,12 @@ CMF is very simple. It has 26-byte header, containing magic bytes and some param
 
 ## C Library
 C library cmf.h created for simple using CMF in applications.
+
 ### Using
+
 ```c
 uint32_t Count;
-CMF_Vertex* Vertices = CMF_Load("filename.cmf");
+CMF_Vertex* Vertices = CMF_Load("filename.cmf", &Count);
 CMF_vec3 Pos;
 CMF_vec2 UV;
 CMF_vec3 Norm;
@@ -47,12 +57,14 @@ int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 ## Console util
 
 ### Installing
+
 ```
 make
 sudo make install
 ```
 
 ### Using
+
 ```
 cmf [input] [output] [flags]
 ```
@@ -67,6 +79,7 @@ cmf [input] [output] [flags]
 | -n, --normals  | Enable writing normals in output file |
 
 ### Uninstalling
+
 ```
 sudo make uninstall
 ```
