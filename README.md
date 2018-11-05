@@ -54,6 +54,12 @@ for (uint32_t i = 0; i < Count; i++)
 int Result = CMF_Save(Count, 0xFF, Vertices, "out.cmf");
 ```
 
+### Documentation
+To generate docs use
+```
+doxygen
+```
+
 ## Console util
 
 ### Installing
