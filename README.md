@@ -1,7 +1,7 @@
 # ColumbusCMF
 Columbus Model Format add-on for Blender, C library and console util for models conversion
 
-The master hosted on github: https://github.com/ColumbusTech/ColumbusCMF
+The master hosted on github: https://github.com/ColumbusUtrigas/ColumbusCMF
 
 ## Getting started
 Columbus Model Format (CMF) developed for Columbus Engine. Engine needed fast, small, simple and and binary file format for containing 3-dimensional data.
