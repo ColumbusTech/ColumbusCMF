@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include "cmf_cmf.h"
-
+#include "../library/cmf.h"
 
 enum FileType
 {
@@ -31,7 +31,7 @@ FileType GetFileType(const char* FileName)
 		return Undefined;
 	}
 
-	uint8_t* Magic[21];
+	uint8_t Magic[21];
 
 	fread(Magic, 1, 21, File);
 
@@ -71,7 +71,35 @@ bool Load(const char* FileName)
 	switch (Type)
 	{
 	case Undefined: return false;                 break;
-	case CMF: return LoadCMF(FileName, Vertices); break;
+	case CMF:
+	{
+		uint32_t Count;
+		CMF_Vertex* Verts = CMF_Load(FileName, &Count);
+
+		if (Verts == nullptr) return false;
+
+		Vertex Vert;
+
+		for (int i = 0; i < Count * 3; i++)
+		{
+			Vert.X = Verts[i].Position.X;
+			Vert.Y = Verts[i].Position.Y;
+			Vert.Z = Verts[i].Position.Z;
+
+			Vert.U = Verts[i].UV.X;
+			Vert.V = Verts[i].UV.Y;
+
+			Vert.NX = Verts[i].Normal.X;
+			Vert.NY = Verts[i].Normal.Y;
+			Vert.NZ = Verts[i].Normal.Z;
+
+			Vertices.push_back(Vert);
+		}
+
+		free(Verts);
+
+		break;
+	}
 	}
 
 	return true;
@@ -79,7 +107,61 @@ bool Load(const char* FileName)
 
 bool Save(const char* FileName, CommandLineFlags Flags)
 {
-	return SaveCMF(FileName, Vertices, Flags.Compress);
+	uint32_t Count = Vertices.size();
+	CMF_Compression Compression = Flags.Compress ? CMF_COMPRESSION_ZSTD : CMF_COMPRESSION_NONE;
+
+	struct CMF_Info Info;
+	Info.compression = Compression;
+	Info.num_vertices = Vertices.size();
+	Info.num_arrays = 3;
+	Info.arrays = new CMF_InfoArray[Info.num_arrays];
+
+	float* Positions = new float[Vertices.size() * 3];
+	float* Texcoords = new float[Vertices.size() * 2];
+	float* Normals   = new float[Vertices.size() * 3];
+
+	for (auto& Vert : Vertices)
+	{
+		*Positions++ = Vert.X;
+		*Positions++ = Vert.Y;
+		*Positions++ = Vert.Z;
+
+		*Texcoords++ = Vert.U;
+		*Texcoords++ = Vert.V;
+
+		*Normals++ = Vert.NX;
+		*Normals++ = Vert.NY;
+		*Normals++ = Vert.NZ;
+	}
+
+	Positions -= Vertices.size() * 3;
+	Texcoords -= Vertices.size() * 2;
+	Normals   -= Vertices.size() * 3;
+
+	Info.arrays[0].type = CMF_TYPE_POSITION;
+	Info.arrays[1].type = CMF_TYPE_TEXCOORD;
+	Info.arrays[2].type = CMF_TYPE_NORMAL;
+
+	Info.arrays[0].format = CMF_FORMAT_FLOAT;
+	Info.arrays[1].format = CMF_FORMAT_FLOAT;
+	Info.arrays[2].format = CMF_FORMAT_FLOAT;
+
+	Info.arrays[0].size = Vertices.size() * 3 * sizeof(float);
+	Info.arrays[1].size = Vertices.size() * 2 * sizeof(float);
+	Info.arrays[2].size = Vertices.size() * 3 * sizeof(float);
+
+	Info.arrays[0].data = Positions;
+	Info.arrays[1].data = Texcoords;
+	Info.arrays[2].data = Normals;
+
+	int Code = CMF_Save2(FileName, &Info);
+
+	delete[] Positions;
+	delete[] Texcoords;
+	delete[] Normals;
+	delete[] Info.arrays;
+
+	return Code == 0;
 }
 
 void PrintUsing()
