@@ -22,13 +22,49 @@ class ExportCMF(bpy.types.Operator):
             description="Smooth object normals",
             default=False)
 
+    write_indexes = bpy.props.BoolProperty(
+    		name="Write indexes",
+    		description="Create and write indexes",
+    		default=False)
+
+    write_positions = bpy.props.BoolProperty(
+    		name="Write positions",
+    		description="Write vertex positions",
+    		default=True)
+
+    write_texcoords = bpy.props.BoolProperty(
+    		name="Write texcoords",
+    		description="Write texture coordinates",
+    		default=True)
+
+    write_normals = bpy.props.BoolProperty(
+    		name="Write normals",
+    		description="Write normals",
+    		default=True)
+
+    write_tangents = bpy.props.BoolProperty(
+    		name="Write tangents",
+    		description="Write tangents",
+    		default=False)
+
+    write_colors = bpy.props.BoolProperty(
+    		name = "Write colors",
+    		description="Write vertex colors",
+    		default=False)
+
     def execute(self, context):
         import cmf_export
 
         cmf_export.writeFile(
                 self.filepath,
                 self.select_only,
-                self.smooth_normals)
+                self.smooth_normals,
+                self.write_indexes,
+                self.write_positions,
+                self.write_texcoords,
+                self.write_normals,
+                self.write_tangents,
+                self.write_colors)
         
         print ('Successfully exported CMF file')
         return {'FINISHED'}
@@ -44,7 +80,6 @@ def menu_export(self, context):
 
 def register():
     bpy.utils.register_class(ExportCMF)
-
 
 def unregister():
     bpy.utils.unregister_class(ExportCMF)
