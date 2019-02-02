@@ -2,6 +2,7 @@ import bpy
 import bmesh
 import struct
 from enum import IntEnum
+from itertools import groupby
 
 class Compression(IntEnum):
     No   = 1 << 0
@@ -13,6 +14,7 @@ class Type(IntEnum):
     Normals   = 2
     Tangents  = 3
     Colors    = 4
+    Indices   = 5
 
 class Format(IntEnum):
     Byte   = 0
@@ -25,35 +27,29 @@ class Format(IntEnum):
     Float  = 7
     Double = 8
 
+def sizeFromFormat(f):
+    if f == Format.Byte or f == Format.UByte: return 1
+    if f == Format.Short or f == Format.UShort: return 2
+    if f == Format.Int or f == Format.UInt: return 4
+    if f == Format.Half: return 2
+    if f == Format.Float: return 4
+    if f == Format.Double: return 8
+
+    return 0
+
 def writeArray(file, array_type, array_format, array):
-    element_size = 0
+    element_size = sizeFromFormat(array_format)
     element_pack = ""
 
-    if array_format is Format.Byte:
-        element_size = 1
-        element_pack = "b"
-    elif array_format is Format.UByte:
-        element_size = 1
-        element_pack = "B"
-    elif array_format is Format.Short:
-        element_size = 2
-        element_pack = "h"
-    elif array_format is Format.UShort:
-        element_size = 2
-        element_pack = "H"
-    elif array_format is Format.Int:
-        element_size = 4
-        element_pack = "i"
-    elif array_format is Format.UInt:
-        element_size = 4
-        element_pack = "I"
-    #elif array_format is Format.Half:
-    elif array_format is Format.Float:
-        element_size = 4
-        element_pack = "f"
-    elif array_format is Format.Double:
-        element_size = 8
-        element_pack = "d"
+    if array_format == Format.Byte: element_pack = "b"
+    elif array_format == Format.UByte: element_pack = "B"
+    elif array_format == Format.Short: element_pack = "h"
+    elif array_format == Format.UShort: element_pack = "H"
+    elif array_format == Format.Int: element_pack = "i"
+    elif array_format == Format.UInt: element_pack = "I"
+    #elif array_format = Format.Half:
+    elif array_format == Format.Float: element_pack = "f"
+    elif array_format == Format.Double: element_pack = "d"
 
     file.write(struct.pack("I", array_type))
     file.write(struct.pack("I", array_format))
@@ -64,7 +60,6 @@ def writeArray(file, array_type, array_format, array):
 
 def writeFile(filepath="",
               select_only=False,
-              smooth_normals=False,
               write_indexes=False,
               write_positions=True,
               write_texcoords=True,
@@ -74,7 +69,7 @@ def writeFile(filepath="",
 
     magic = b"COLUMBUS MODEL FORMAT  \0"
     version = 1
-    filesize = 0
+    filesize = 48
     flags = 0
     compression = Compression.No
     num_vertices = 0
@@ -85,6 +80,8 @@ def writeFile(filepath="",
     norms = []
     tangs = []
     cols = []
+    inds = []
+    indices_format = Format.UByte
 
     for ob in bpy.context.scene.objects:
         try:
@@ -97,20 +94,65 @@ def writeFile(filepath="",
         bpy.ops.mesh.quads_convert_to_tris()
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        for face in ob.data.polygons:
-           for vert, loop in zip(face.vertices, face.loop_indices):
-                num_vertices += 1
+        if write_indexes:
+            vert_hash = {}
 
-                verts.extend(ob.data.vertices[vert].co)
-                uvs.extend(ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0))
-                norms.extend(ob.data.vertices[vert].normal if smooth_normals else face.normal.xyz)
-                cols.extend(ob.data.vertex_colors.active.data[loop].color if ob.data.vertex_colors.active != None else (0, 0, 0))
+            for face in ob.data.polygons:
+                for vert, loop in zip(face.vertices, face.loop_indices):
+                    v = ob.data.vertices[vert].co
+                    u = ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0)
+                    n = ob.data.vertices[vert].normal if face.use_smooth else face.normal.xyz
+                    c = ob.data.vertex_colors.active.data[loop].color if ob.data.vertex_colors.active != None else (0, 0, 0)
+                    new_vert = (tuple(v), tuple(u), tuple(n), tuple(c))
 
-    if write_positions: num_arrays += 1
-    if write_texcoords: num_arrays += 1
-    if write_normals:   num_arrays += 1
-    if write_tangents:  num_arrays += 1
-    if write_colors:    num_arrays += 1
+                    if new_vert in vert_hash:
+                        inds.append(vert_hash[new_vert])
+                    else:
+                        vert_hash[new_vert] = num_vertices
+                        inds.append(num_vertices)
+                        num_vertices += 1
+
+                        verts.extend(v)
+                        uvs.extend(u)
+                        norms.extend(n)
+                        cols.extend(c)
+
+            if len(inds) > 255:
+                indices_format = Format.UShort
+
+            if len(inds) > 65535:
+                indices_format = Format.UInt
+        else:
+            for face in ob.data.polygons:
+                for vert, loop in zip(face.vertices, face.loop_indices):
+                    num_vertices += 1
+
+                    verts.extend(ob.data.vertices[vert].co)
+                    uvs.extend(ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0))
+                    norms.extend(ob.data.vertices[vert].normal if face.use_smooth else face.normal.xyz)
+                    cols.extend(ob.data.vertex_colors.active.data[loop].color if ob.data.vertex_colors.active != None else (0, 0, 0))
+
+    if write_positions:
+        num_arrays += 1
+        filesize += len(verts) * 4
+    if write_texcoords:
+        num_arrays += 1
+        filesize += len(uvs) * 4
+    if write_normals:
+        num_arrays += 1
+        filesize += len(norms) * 4
+    if write_tangents:
+        num_arrays += 1
+        filesize += len(tangs) * 4
+    if write_colors:
+        num_arrays += 1
+        filesize += len(cols) * 4
+    if write_indexes:
+        num_arrays += 1
+        filesize += len(inds) * sizeFromFormat(indices_format)
+
+    array_header_size = 12
+    filesize += num_arrays * array_header_size
 
     file = open(filepath, "wb")
 
@@ -122,11 +164,12 @@ def writeFile(filepath="",
     file.write(struct.pack("I", num_vertices))
     file.write(struct.pack("I", num_arrays))
 
-    if write_positions: writeArray(file, Type.Positions, Format.Float, verts)
-    if write_texcoords: writeArray(file, Type.Texcoords, Format.Float, uvs)
-    if write_normals:   writeArray(file, Type.Normals,   Format.Float, norms)
-    if write_tangents:  writeArray(file, Type.Tangents,  Format.Float, tangs)
-    if write_colors:    writeArray(file, Type.Colors,    Format.Float, cols)
+    if write_positions: writeArray(file, Type.Positions, Format.Float,    verts)
+    if write_texcoords: writeArray(file, Type.Texcoords, Format.Float,    uvs)
+    if write_normals:   writeArray(file, Type.Normals,   Format.Float,    norms)
+    if write_tangents:  writeArray(file, Type.Tangents,  Format.Float,    tangs)
+    if write_colors:    writeArray(file, Type.Colors,    Format.Float,    cols)
+    if write_indexes:   writeArray(file, Type.Indices,   indices_format,  inds)
 
     file.close()
 

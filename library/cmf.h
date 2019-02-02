@@ -43,7 +43,8 @@ enum CMF_Type
 	CMF_TYPE_TEXCOORD = 1,
 	CMF_TYPE_NORMAL   = 2,
 	CMF_TYPE_TANGENT  = 3,
-	CMF_TYPE_COLOR    = 4
+	CMF_TYPE_COLOR    = 4,
+	CMF_TYPE_INDICES  = 5
 };
 
 enum CMF_Format

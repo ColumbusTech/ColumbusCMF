@@ -17,11 +17,6 @@ class ExportCMF(bpy.types.Operator):
             description="Export selected objects only",
             default=False)
 
-    smooth_normals = bpy.props.BoolProperty(
-            name="Smooth normals",
-            description="Smooth object normals",
-            default=False)
-
     write_indexes = bpy.props.BoolProperty(
     		name="Write indexes",
     		description="Create and write indexes",
@@ -58,7 +53,6 @@ class ExportCMF(bpy.types.Operator):
         cmf_export.writeFile(
                 self.filepath,
                 self.select_only,
-                self.smooth_normals,
                 self.write_indexes,
                 self.write_positions,
                 self.write_texcoords,
