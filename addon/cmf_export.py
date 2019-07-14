@@ -83,26 +83,33 @@ def writeFile(filepath="",
     inds = []
     indices_format = Format.UByte
 
-    for ob in bpy.context.scene.objects:
+    objects = bpy.context.scene.objects
+
+    if select_only:
+        objects = bpy.context.active_object
+
+    for ob in objects:
         try:
             ob.data.polygons
         except AttributeError:
             continue
 
-        bpy.context.scene.objects.active = ob
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.quads_convert_to_tris()
-        bpy.ops.object.mode_set(mode='OBJECT')
+        me = ob.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bmesh.ops.triangulate(bm, faces=bm.faces[:])
+        bm.to_mesh(me)
+        bm.free()
 
         if write_indexes:
             vert_hash = {}
 
-            for face in ob.data.polygons:
+            for face in me.polygons:
                 for vert, loop in zip(face.vertices, face.loop_indices):
-                    v = ob.data.vertices[vert].co
-                    u = ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0)
-                    n = ob.data.vertices[vert].normal if face.use_smooth else face.normal.xyz
-                    c = ob.data.vertex_colors.active.data[loop].color if ob.data.vertex_colors.active != None else (0, 0, 0)
+                    v = me.vertices[vert].co
+                    u = me.uv_layers.active.data[loop].uv if me.uv_layers.active != None else (0, 0)
+                    n = me.vertices[vert].normal if face.use_smooth else face.normal.xyz
+                    c = me.vertex_colors.active.data[loop].color if me.vertex_colors.active != None else (0, 0, 0)
                     new_vert = (tuple(v), tuple(u), tuple(n), tuple(c))
 
                     if new_vert in vert_hash:
@@ -123,14 +130,14 @@ def writeFile(filepath="",
             if len(inds) > 65535:
                 indices_format = Format.UInt
         else:
-            for face in ob.data.polygons:
+            for face in me.polygons:
                 for vert, loop in zip(face.vertices, face.loop_indices):
                     num_vertices += 1
 
-                    verts.extend(ob.data.vertices[vert].co)
-                    uvs.extend(ob.data.uv_layers.active.data[loop].uv if ob.data.uv_layers.active != None else (0, 0))
-                    norms.extend(ob.data.vertices[vert].normal if face.use_smooth else face.normal.xyz)
-                    cols.extend(ob.data.vertex_colors.active.data[loop].color if ob.data.vertex_colors.active != None else (0, 0, 0))
+                    verts.extend(me.vertices[vert].co)
+                    uvs.extend(me.uv_layers.active.data[loop].uv if me.uv_layers.active != None else (0, 0))
+                    norms.extend(me.vertices[vert].normal if face.use_smooth else face.normal.xyz)
+                    cols.extend(me.vertex_colors.active.data[loop].color if me.vertex_colors.active != None else (0, 0, 0))
 
     if write_positions:
         num_arrays += 1

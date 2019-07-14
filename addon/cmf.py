@@ -1,16 +1,20 @@
 bl_info = {
     "name": "Export Columbus Model Format (CMF) file",
     "category": "Import-Export",
+    "blender": (2, 80, 0),
+    "version": (0, 1, 0),
+    "location":     "File > Import-Export",
+    "description":  "Export CMF files",
 }
 
 import bpy
 
 class ExportCMF(bpy.types.Operator):
-    bl_idname = "export_mesh.cmf"
+    bl_idname = "export_scene.cmf"
     bl_label = "Export CMF"
     filename_ext = ".cmf"
     filter_glob = bpy.props.StringProperty(default="*.cmf", options={'HIDDEN'})
-    filepath = bpy.props.StringProperty(default="untitled.cmf", subtype='FILE_PATH')
+    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
 
     select_only = bpy.props.BoolProperty(
             name="Selection Only",
@@ -18,34 +22,34 @@ class ExportCMF(bpy.types.Operator):
             default=False)
 
     write_indexes = bpy.props.BoolProperty(
-    		name="Write indexes",
-    		description="Create and write indexes",
-    		default=False)
+            name="Write indexes",
+            description="Create and write indexes",
+            default=False)
 
     write_positions = bpy.props.BoolProperty(
-    		name="Write positions",
-    		description="Write vertex positions",
-    		default=True)
+            name="Write positions",
+            description="Write vertex positions",
+            default=True)
 
     write_texcoords = bpy.props.BoolProperty(
-    		name="Write texcoords",
-    		description="Write texture coordinates",
-    		default=True)
+            name="Write texcoords",
+            description="Write texture coordinates",
+            default=True)
 
     write_normals = bpy.props.BoolProperty(
-    		name="Write normals",
-    		description="Write normals",
-    		default=True)
+            name="Write normals",
+            description="Write normals",
+            default=True)
 
     write_tangents = bpy.props.BoolProperty(
-    		name="Write tangents",
-    		description="Write tangents",
-    		default=False)
+            name="Write tangents",
+            description="Write tangents",
+            default=False)
 
     write_colors = bpy.props.BoolProperty(
-    		name = "Write colors",
-    		description="Write vertex colors",
-    		default=False)
+            name = "Write colors",
+            description="Write vertex colors",
+            default=False)
 
     def execute(self, context):
         import cmf_export
@@ -69,18 +73,16 @@ class ExportCMF(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def menu_export(self, context):
+def menu_func_export(self, context):
     self.layout.operator(ExportCMF.bl_idname, text="Columbus Model Format (.cmf)")
 
 def register():
     bpy.utils.register_class(ExportCMF)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_class(ExportCMF)
 
 if __name__ == "__main__":
     register()
-
-
-
 
